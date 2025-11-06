@@ -565,6 +565,170 @@ pub fn all_tools() -> Vec<EndpointTool> {
         body_schema: None,
     },
     EndpointTool {
+        name: Cow::Borrowed("createFlow"),
+        description: Cow::Borrowed("create flow"),
+        instructions: Cow::Borrowed("Creates a new flow. The flow definition must be provided in the 'value' field as a JSON object containing the flow structure with modules, failure_module, and other configuration. Before creating a flow, you should ensure the flow value is a valid JSON object with at least a 'modules' array."),
+        path: Cow::Borrowed("/w/{workspace}/flows/create"),
+        method: Cow::Borrowed("POST"),
+        path_params_schema: None,
+        query_params_schema: None,
+        body_schema: Some(serde_json::json!({
+        "allOf": [
+                {
+                        "allOf": [
+                                {
+                                        "$ref": "../../openflow.openapi.yaml#/components/schemas/OpenFlow"
+                                },
+                                {
+                                        "type": "object",
+                                        "properties": {
+                                                "path": {
+                                                        "type": "string"
+                                                },
+                                                "tag": {
+                                                        "type": "string"
+                                                },
+                                                "ws_error_handler_muted": {
+                                                        "type": "boolean"
+                                                },
+                                                "priority": {
+                                                        "type": "integer"
+                                                },
+                                                "dedicated_worker": {
+                                                        "type": "boolean"
+                                                },
+                                                "timeout": {
+                                                        "type": "number"
+                                                },
+                                                "visible_to_runner_only": {
+                                                        "type": "boolean"
+                                                },
+                                                "on_behalf_of_email": {
+                                                        "type": "string"
+                                                }
+                                        },
+                                        "required": [
+                                                "path"
+                                        ]
+                                }
+                        ]
+                },
+                {
+                        "type": "object",
+                        "properties": {
+                                "draft_only": {
+                                        "type": "boolean"
+                                },
+                                "deployment_message": {
+                                        "type": "string"
+                                }
+                        }
+                }
+        ],
+        "required": []
+})),
+    },
+    EndpointTool {
+        name: Cow::Borrowed("updateFlow"),
+        description: Cow::Borrowed("update flow"),
+        instructions: Cow::Borrowed("Updates an existing flow. You must provide the complete flow definition in the 'value' field, not just the changes. Before updating, you should typically get the current flow definition, modify it, and then send the complete updated definition."),
+        path: Cow::Borrowed("/w/{workspace}/flows/update/{path}"),
+        method: Cow::Borrowed("POST"),
+        path_params_schema: Some(serde_json::json!({
+        "type": "object",
+        "properties": {
+                "path": {
+                        "type": "string"
+                }
+        },
+        "required": [
+                "path"
+        ]
+})),
+        query_params_schema: None,
+        body_schema: Some(serde_json::json!({
+        "allOf": [
+                {
+                        "allOf": [
+                                {
+                                        "$ref": "../../openflow.openapi.yaml#/components/schemas/OpenFlow"
+                                },
+                                {
+                                        "type": "object",
+                                        "properties": {
+                                                "path": {
+                                                        "type": "string"
+                                                },
+                                                "tag": {
+                                                        "type": "string"
+                                                },
+                                                "ws_error_handler_muted": {
+                                                        "type": "boolean"
+                                                },
+                                                "priority": {
+                                                        "type": "integer"
+                                                },
+                                                "dedicated_worker": {
+                                                        "type": "boolean"
+                                                },
+                                                "timeout": {
+                                                        "type": "number"
+                                                },
+                                                "visible_to_runner_only": {
+                                                        "type": "boolean"
+                                                },
+                                                "on_behalf_of_email": {
+                                                        "type": "string"
+                                                }
+                                        },
+                                        "required": [
+                                                "path"
+                                        ]
+                                }
+                        ]
+                },
+                {
+                        "type": "object",
+                        "properties": {
+                                "deployment_message": {
+                                        "type": "string"
+                                }
+                        }
+                }
+        ],
+        "required": []
+})),
+    },
+    EndpointTool {
+        name: Cow::Borrowed("deleteFlowByPath"),
+        description: Cow::Borrowed("delete flow by path"),
+        instructions: Cow::Borrowed("Deletes a flow by its path. This will permanently remove the flow from the workspace."),
+        path: Cow::Borrowed("/w/{workspace}/flows/delete/{path}"),
+        method: Cow::Borrowed("DELETE"),
+        path_params_schema: Some(serde_json::json!({
+        "type": "object",
+        "properties": {
+                "path": {
+                        "type": "string"
+                }
+        },
+        "required": [
+                "path"
+        ]
+})),
+        query_params_schema: Some(serde_json::json!({
+        "type": "object",
+        "properties": {
+                "keep_captures": {
+                        "type": "boolean",
+                        "description": "keep captures"
+                }
+        },
+        "required": []
+})),
+        body_schema: None,
+    },
+    EndpointTool {
         name: Cow::Borrowed("runScriptPreviewAndWaitResult"),
         description: Cow::Borrowed("run script preview and wait for result"),
         instructions: Cow::Borrowed("Allows testing a script before deploying it. For typescript code, the language to send is either bun or deno. By default, send bun if no deno specific code is detected."),
@@ -817,10 +981,25 @@ pub fn all_tools() -> Vec<EndpointTool> {
                         "format": "date-time",
                         "description": "filter on created after (exclusive) timestamp"
                 },
-                "created_or_started_before": {
+                "completed_before": {
                         "type": "string",
                         "format": "date-time",
-                        "description": "filter on created_at for non non started job and started_at otherwise before (inclusive) timestamp"
+                        "description": "filter on started before (inclusive) timestamp"
+                },
+                "completed_after": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "filter on started after (exclusive) timestamp"
+                },
+                "created_before_queue": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "filter on jobs created before X for jobs in the queue only"
+                },
+                "created_after_queue": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "filter on jobs created after X for jobs in the queue only"
                 },
                 "running": {
                         "type": "boolean",
@@ -829,16 +1008,6 @@ pub fn all_tools() -> Vec<EndpointTool> {
                 "scheduled_for_before_now": {
                         "type": "boolean",
                         "description": "filter on jobs scheduled_for before now (hence waitinf for a worker)"
-                },
-                "created_or_started_after": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp"
-                },
-                "created_or_started_after_completed_jobs": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp but only for the completed jobs"
                 },
                 "job_kinds": {
                         "type": "string",
@@ -863,10 +1032,6 @@ pub fn all_tools() -> Vec<EndpointTool> {
                 "allow_wildcards": {
                         "type": "boolean",
                         "description": "allow wildcards (*) in the filter of label, tag, worker"
-                },
-                "page": {
-                        "type": "integer",
-                        "description": "which page to return (start at 1, default 1)"
                 },
                 "per_page": {
                         "type": "integer",

@@ -6556,6 +6556,12 @@ paths:
     post:
       summary: create flow
       operationId: createFlow
+      x-mcp-tool: true
+      x-mcp-instructions: Creates a new flow. The flow definition must be provided in the 'value' field as a JSON object containing the flow structure with modules, failure_module, and other configuration. Before creating a flow, you should ensure the flow value is a valid JSON object with at least a 'modules' array.
+      x-mcp-required-fields:
+        - path
+        - summary
+        - value
       tags:
         - flow
       parameters:
@@ -6586,6 +6592,12 @@ paths:
     post:
       summary: update flow
       operationId: updateFlow
+      x-mcp-tool: true
+      x-mcp-instructions: Updates an existing flow. You must provide the complete flow definition in the 'value' field, not just the changes. Before updating, you should typically get the current flow definition, modify it, and then send the complete updated definition.
+      x-mcp-required-fields:
+        - path
+        - summary
+        - value
       tags:
         - flow
       parameters:
@@ -6643,6 +6655,8 @@ paths:
     delete:
       summary: delete flow by path
       operationId: deleteFlowByPath
+      x-mcp-tool: true
+      x-mcp-instructions: Deletes a flow by its path. This will permanently remove the flow from the workspace.
       tags:
         - flow
       parameters:

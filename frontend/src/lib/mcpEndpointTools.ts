@@ -558,6 +558,170 @@ export const mcpEndpointTools: EndpointTool[] = [
         bodySchema: undefined
     },
     {
+        name: "createFlow",
+        description: "create flow",
+        instructions: "Creates a new flow. The flow definition must be provided in the 'value' field as a JSON object containing the flow structure with modules, failure_module, and other configuration. Before creating a flow, you should ensure the flow value is a valid JSON object with at least a 'modules' array.",
+        path: "/w/{workspace}/flows/create",
+        method: "POST",
+        pathParamsSchema: undefined,
+        queryParamsSchema: undefined,
+        bodySchema: {
+        "allOf": [
+                {
+                        "allOf": [
+                                {
+                                        "$ref": "../../openflow.openapi.yaml#/components/schemas/OpenFlow"
+                                },
+                                {
+                                        "type": "object",
+                                        "properties": {
+                                                "path": {
+                                                        "type": "string"
+                                                },
+                                                "tag": {
+                                                        "type": "string"
+                                                },
+                                                "ws_error_handler_muted": {
+                                                        "type": "boolean"
+                                                },
+                                                "priority": {
+                                                        "type": "integer"
+                                                },
+                                                "dedicated_worker": {
+                                                        "type": "boolean"
+                                                },
+                                                "timeout": {
+                                                        "type": "number"
+                                                },
+                                                "visible_to_runner_only": {
+                                                        "type": "boolean"
+                                                },
+                                                "on_behalf_of_email": {
+                                                        "type": "string"
+                                                }
+                                        },
+                                        "required": [
+                                                "path"
+                                        ]
+                                }
+                        ]
+                },
+                {
+                        "type": "object",
+                        "properties": {
+                                "draft_only": {
+                                        "type": "boolean"
+                                },
+                                "deployment_message": {
+                                        "type": "string"
+                                }
+                        }
+                }
+        ],
+        "required": []
+}
+    },
+    {
+        name: "updateFlow",
+        description: "update flow",
+        instructions: "Updates an existing flow. You must provide the complete flow definition in the 'value' field, not just the changes. Before updating, you should typically get the current flow definition, modify it, and then send the complete updated definition.",
+        path: "/w/{workspace}/flows/update/{path}",
+        method: "POST",
+        pathParamsSchema: {
+        "type": "object",
+        "properties": {
+                "path": {
+                        "type": "string"
+                }
+        },
+        "required": [
+                "path"
+        ]
+},
+        queryParamsSchema: undefined,
+        bodySchema: {
+        "allOf": [
+                {
+                        "allOf": [
+                                {
+                                        "$ref": "../../openflow.openapi.yaml#/components/schemas/OpenFlow"
+                                },
+                                {
+                                        "type": "object",
+                                        "properties": {
+                                                "path": {
+                                                        "type": "string"
+                                                },
+                                                "tag": {
+                                                        "type": "string"
+                                                },
+                                                "ws_error_handler_muted": {
+                                                        "type": "boolean"
+                                                },
+                                                "priority": {
+                                                        "type": "integer"
+                                                },
+                                                "dedicated_worker": {
+                                                        "type": "boolean"
+                                                },
+                                                "timeout": {
+                                                        "type": "number"
+                                                },
+                                                "visible_to_runner_only": {
+                                                        "type": "boolean"
+                                                },
+                                                "on_behalf_of_email": {
+                                                        "type": "string"
+                                                }
+                                        },
+                                        "required": [
+                                                "path"
+                                        ]
+                                }
+                        ]
+                },
+                {
+                        "type": "object",
+                        "properties": {
+                                "deployment_message": {
+                                        "type": "string"
+                                }
+                        }
+                }
+        ],
+        "required": []
+}
+    },
+    {
+        name: "deleteFlowByPath",
+        description: "delete flow by path",
+        instructions: "Deletes a flow by its path. This will permanently remove the flow from the workspace.",
+        path: "/w/{workspace}/flows/delete/{path}",
+        method: "DELETE",
+        pathParamsSchema: {
+        "type": "object",
+        "properties": {
+                "path": {
+                        "type": "string"
+                }
+        },
+        "required": [
+                "path"
+        ]
+},
+        queryParamsSchema: {
+        "type": "object",
+        "properties": {
+                "keep_captures": {
+                        "type": "boolean",
+                        "description": "keep captures"
+                }
+        },
+        "required": []
+},
+        bodySchema: undefined
+    },
+    {
         name: "runScriptPreviewAndWaitResult",
         description: "run script preview and wait for result",
         instructions: "Allows testing a script before deploying it. For typescript code, the language to send is either bun or deno. By default, send bun if no deno specific code is detected.",
@@ -810,10 +974,25 @@ export const mcpEndpointTools: EndpointTool[] = [
                         "format": "date-time",
                         "description": "filter on created after (exclusive) timestamp"
                 },
-                "created_or_started_before": {
+                "completed_before": {
                         "type": "string",
                         "format": "date-time",
-                        "description": "filter on created_at for non non started job and started_at otherwise before (inclusive) timestamp"
+                        "description": "filter on started before (inclusive) timestamp"
+                },
+                "completed_after": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "filter on started after (exclusive) timestamp"
+                },
+                "created_before_queue": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "filter on jobs created before X for jobs in the queue only"
+                },
+                "created_after_queue": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "filter on jobs created after X for jobs in the queue only"
                 },
                 "running": {
                         "type": "boolean",
@@ -822,16 +1001,6 @@ export const mcpEndpointTools: EndpointTool[] = [
                 "scheduled_for_before_now": {
                         "type": "boolean",
                         "description": "filter on jobs scheduled_for before now (hence waitinf for a worker)"
-                },
-                "created_or_started_after": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp"
-                },
-                "created_or_started_after_completed_jobs": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "filter on created_at for non non started job and started_at otherwise after (exclusive) timestamp but only for the completed jobs"
                 },
                 "job_kinds": {
                         "type": "string",
@@ -856,10 +1025,6 @@ export const mcpEndpointTools: EndpointTool[] = [
                 "allow_wildcards": {
                         "type": "boolean",
                         "description": "allow wildcards (*) in the filter of label, tag, worker"
-                },
-                "page": {
-                        "type": "integer",
-                        "description": "which page to return (start at 1, default 1)"
                 },
                 "per_page": {
                         "type": "integer",
