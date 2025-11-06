@@ -196,15 +196,55 @@ export async function add(
     remote.endsWith("/") ? remote.substring(0, remote.length - 1) : remote
   );
   let alreadyExists = false;
+  let canVerifyWorkspace = false;
   try {
     alreadyExists = await wmill.existsWorkspace({
       requestBody: { id: workspaceId },
     });
+    canVerifyWorkspace = true;
   } catch (e) {
+    // existsWorkspace might fail with workspace-scoped tokens
+    // Try alternative verification methods
     log.info(
-      colors.red.bold("! Credentials or instance is invalid. Aborting.")
+      colors.yellow(
+        "Note: Could not verify workspace existence with existsWorkspace endpoint."
+      )
     );
-    throw e;
+    log.info(colors.yellow("Attempting alternative verification..."));
+
+    try {
+      // Try to list workspaces - this works with workspace-scoped tokens
+      const workspaces = await wmill.listWorkspaces();
+      alreadyExists = workspaces.some((w: any) => w.id === workspaceId);
+      canVerifyWorkspace = true;
+      log.info(
+        colors.green(
+          `✓ Verified workspace using alternative method. Workspace ${
+            alreadyExists ? "exists" : "does not exist"
+          }.`
+        )
+      );
+    } catch (e2) {
+      // Both methods failed - this might be a credential or connectivity issue
+      log.info(
+        colors.yellow(
+          "⚠ Could not verify workspace existence. This may be due to:"
+        )
+      );
+      log.info(colors.yellow("  - Invalid credentials"));
+      log.info(colors.yellow("  - Network connectivity issues"));
+      log.info(colors.yellow("  - Token permissions"));
+      log.info(
+        colors.yellow(
+          "\nProceeding with workspace addition. If the workspace doesn't exist,"
+        )
+      );
+      log.info(colors.yellow("you may encounter errors when using this profile."));
+
+      // For workspace-scoped tokens, assume the workspace exists
+      // (otherwise the token wouldn't have been created)
+      alreadyExists = true;
+    }
   }
   if (opts.create) {
     if (!alreadyExists) {
@@ -225,7 +265,9 @@ export async function add(
         },
       });
     }
-  } else if (!alreadyExists) {
+  } else if (!alreadyExists && canVerifyWorkspace) {
+    // Only abort if we successfully verified the workspace doesn't exist
+    // If we couldn't verify (canVerifyWorkspace=false), we already warned the user
     log.info(
       colors.red.bold(
         `! Workspace at id ${workspaceId} on ${remote} does not exist. Re-run with --create to create it. Aborting.`
@@ -234,9 +276,13 @@ export async function add(
     log.info(
       "On that instance and with those credentials, the workspaces that you can access are:"
     );
-    const workspaces = await wmill.listWorkspaces();
-    for (const workspace of workspaces) {
-      log.info(`- ${workspace.id} (name: ${workspace.name})`);
+    try {
+      const workspaces = await wmill.listWorkspaces();
+      for (const workspace of workspaces) {
+        log.info(`- ${workspace.id} (name: ${workspace.name})`);
+      }
+    } catch (e) {
+      log.info(colors.yellow("(Could not list available workspaces)"));
     }
     Deno.exit(1);
   }
